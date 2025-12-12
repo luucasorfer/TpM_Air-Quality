@@ -7,7 +7,7 @@ import React, { useState, useEffect } from "react";
 import MOTDashboard from "./components/MOTDashboard";
 import { useUserPreferences } from "./hooks/useLocalStorage";
 import { APP_NAME, APP_VERSION } from "./utils/constants";
-import "./App.css";
+//import "./App.css";
 
 export default function App() {
   const { preferences, updatePreference } = useUserPreferences();
@@ -55,17 +55,6 @@ export default function App() {
 
       {/* Dashboard Principal */}
       <MOTDashboard />
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-gray-300 text-center py-6 mt-12">
-        <p className="text-sm">
-          {APP_NAME} v{APP_VERSION} • Monitoramento LoRaWAN • Desenvolvido com
-          React + Recharts
-        </p>
-        <p className="text-xs text-gray-500 mt-2">
-          © 2025 Metodologia TpM - Unicamp
-        </p>
-      </footer>
     </div>
   );
 }

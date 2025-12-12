@@ -9,7 +9,7 @@
  * @param {number} decimals - Número de casas decimais
  * @returns {string} - Temperatura formatada
  */
-export function formatTemperature(celsius, decimals = 2) {
+export function formatTemperature(celsius, decimals = 1) {
   if (celsius === null || celsius === undefined) return "--°C";
   return `${parseFloat(celsius).toFixed(decimals)}°C`;
 }
@@ -20,7 +20,7 @@ export function formatTemperature(celsius, decimals = 2) {
  * @param {number} decimals - Número de casas decimais
  * @returns {string} - Umidade formatada
  */
-export function formatHumidity(humidity, decimals = 2) {
+export function formatHumidity(humidity, decimals = 1) {
   if (humidity === null || humidity === undefined) return "--%";
   return `${parseFloat(humidity).toFixed(decimals)}%`;
 }
@@ -53,18 +53,17 @@ export function formatSNR(snr, decimals = 1) {
  * @returns {string} - Hora formatada
  */
 export function formatTime(timestamp, locale = "pt-BR") {
-  if (!timestamp) return "--:--:--";
+  if (!timestamp) return "--:--";
 
   try {
     const date = new Date(timestamp);
     return date.toLocaleTimeString(locale, {
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     });
   } catch (error) {
     console.error("Erro ao formatar hora:", error);
-    return "--:--:--";
+    return "--:--";
   }
 }
 

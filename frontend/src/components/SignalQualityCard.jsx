@@ -12,10 +12,47 @@ import {
 } from "lucide-react";
 
 export function SignalQualityCard({ quality, statistics }) {
+  // ✅ DEBUG: Adicionar console.log para ver o que está chegando
+  console.log("🔍 SignalQualityCard recebeu:", {
+    quality,
+    statistics,
+    hasQuality: !!quality,
+    hasAvgRssi: quality?.avg_rssi !== undefined,
+  });
+
+  // ✅ CORREÇÃO 1: Verificação mais robusta de dados
   if (!quality) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <p className="text-gray-500">Carregando análise de qualidade...</p>
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
+        <div className="text-center py-8">
+          <Wifi className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">
+            Carregando análise de qualidade...
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+            Aguardando dados do servidor
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ CORREÇÃO 2: Verificar se avg_rssi existe
+  if (quality.avg_rssi === undefined || quality.avg_rssi === null) {
+    return (
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
+        <div className="text-center py-8">
+          <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">
+            Dados de qualidade incompletos
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+            RSSI médio não disponível
+          </p>
+          <pre className="text-xs mt-4 bg-gray-100 dark:bg-slate-700 p-2 rounded text-left">
+            {JSON.stringify(quality, null, 2)}
+          </pre>
+        </div>
       </div>
     );
   }
@@ -75,14 +112,14 @@ export function SignalQualityCard({ quality, statistics }) {
   /**
    * Calcular taxa de sucesso
    */
-  const successRate = quality.readings_analyzed > 0 ? 100 : 0;
+  const successRate = statistics.success_rate > 0 ? statistics.success_rate : 0;
 
   /**
    * Calcular variação RSSI
    */
   const rssiVariation =
-    quality.rssi_range?.max && quality.rssi_range?.min
-      ? Math.abs(quality.rssi_range.max - quality.rssi_range.min)
+    statistics.rssi.max && statistics.rssi.min
+      ? Math.abs(statistics.rssi.max - statistics.rssi.min)
       : 0;
 
   /**
@@ -162,14 +199,14 @@ export function SignalQualityCard({ quality, statistics }) {
       </div>
 
       {/* Grid de Métricas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         {/* Pacotes Analisados */}
         <div className="bg-blue-50 p-4 rounded-lg">
           <p className="text-xs text-blue-600 uppercase font-semibold">
             Pacotes
           </p>
           <p className="text-2xl font-bold text-blue-800 mt-2">
-            {quality.readings_analyzed || 0}
+            {statistics.packet_count || 0}
           </p>
         </div>
 
@@ -182,8 +219,10 @@ export function SignalQualityCard({ quality, statistics }) {
             {successRate}%
           </p>
         </div>
+      </div>
 
-        {/* Variação RSSI */}
+      {/* Variação RSSI */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-purple-50 p-4 rounded-lg">
           <p className="text-xs text-purple-600 uppercase font-semibold">
             Variação
@@ -199,9 +238,7 @@ export function SignalQualityCard({ quality, statistics }) {
             SNR Médio
           </p>
           <p className="text-2xl font-bold text-orange-800 mt-2">
-            {statistics?.snr?.avg
-              ? `${statistics.snr.avg.toFixed(1)} dB`
-              : "-- dB"}
+            {statistics?.snr?.avg ? `${statistics.snr.avg} dB` : "-- dB"}
           </p>
         </div>
       </div>
@@ -215,10 +252,10 @@ export function SignalQualityCard({ quality, statistics }) {
               Mínimo
             </p>
             <p className="text-xl font-bold text-red-600 mt-1">
-              {quality.rssi_range?.min || "--"} dBm
+              {statistics.rssi.min || "--"} dBm
             </p>
           </div>
-          <div>
+          <div className="min-w-28">
             <p className="text-xs text-gray-600 uppercase font-semibold">
               Médio
             </p>
@@ -231,7 +268,7 @@ export function SignalQualityCard({ quality, statistics }) {
               Máximo
             </p>
             <p className="text-xl font-bold text-green-600 mt-1">
-              {quality.rssi_range?.max || "--"} dBm
+              {statistics.rssi.max || "--"} dBm
             </p>
           </div>
         </div>
@@ -245,20 +282,20 @@ export function SignalQualityCard({ quality, statistics }) {
         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
           <div
             className={`h-full transition-all ${
-              quality.avg_rssi > -80
+              Number(quality.avg_rssi) > -80
                 ? "bg-green-500"
-                : quality.avg_rssi > -90
+                : Number(quality.avg_rssi) > -90
                 ? "bg-blue-500"
-                : quality.avg_rssi > -100
+                : Number(quality.avg_rssi) > -100
                 ? "bg-yellow-500"
-                : quality.avg_rssi > -110
+                : Number(quality.avg_rssi) > -110
                 ? "bg-orange-500"
                 : "bg-red-500"
             }`}
             style={{
               width: `${Math.max(
                 0,
-                Math.min(100, ((quality.avg_rssi + 120) / 40) * 100),
+                Math.min(100, ((Number(quality.avg_rssi) + 120) / 40) * 100),
               )}%`,
             }}
           />

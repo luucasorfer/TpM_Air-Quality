@@ -360,13 +360,13 @@ export const CACHE_TTL = {
 export const MENU_ITEMS = [
   {
     id: "sensor",
-    label: "📊 Dados do Sensor",
+    label: "Dados do Sensor",
     icon: "BarChart3",
     description: "Temperatura, Umidade e Histórico",
   },
   {
     id: "rssi",
-    label: "📡 Qualidade do Sinal",
+    label: "Análise de Sinal",
     icon: "Wifi",
     description: "RSSI, SNR e Análise de Sinal",
   },

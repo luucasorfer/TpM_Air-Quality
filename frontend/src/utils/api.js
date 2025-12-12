@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.VITE_API_URL || "https://ttn-webhook-server.onrender.com";
+  import.meta.env.VITE_API_URL || "https://ttn-webhook-server.onrender.com";
 
 export async function fetchLatest(deviceId) {
   const response = await fetch(

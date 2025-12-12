@@ -28,6 +28,8 @@ import {
   EyeOff,
   Moon,
   Sun,
+  Thermometer,
+  Droplets,
 } from "lucide-react";
 import { useUserPreferences } from "../hooks/useLocalStorage";
 import { SignalQualityCard } from "./SignalQualityCard";
@@ -36,6 +38,7 @@ import {
   formatHumidity,
   formatRSSI,
   formatSNR,
+  formatDate,
   formatTime,
   formatDateTime,
   getSignalQualityDescription,
@@ -322,7 +325,7 @@ export default function MOTDashboard() {
           HEADER
          =========================== */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             {/* Logo e Título */}
             <div className="flex items-center space-x-4">
@@ -336,8 +339,8 @@ export default function MOTDashboard() {
                 </p>
               </div>
             </div>
-
-            {/* Controles */}
+            <div className="flex gap-2">
+              {/* Controles 
             <div className="flex gap-2">
               <button
                 onClick={toggleTheme}
@@ -350,16 +353,7 @@ export default function MOTDashboard() {
                   <Moon className="w-5 h-5" />
                 )}
               </button>
-              <button
-                onClick={loadAllData}
-                disabled={isRefreshing}
-                className="bg-blue-700 hover:bg-blue-600 p-2 rounded-lg transition disabled:opacity-50"
-                title="Atualizar dados"
-              >
-                <RefreshCw
-                  className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-              </button>
+
               <button
                 onClick={exportAsCSV}
                 className="bg-green-600 hover:bg-green-700 p-2 rounded-lg transition"
@@ -368,28 +362,27 @@ export default function MOTDashboard() {
                 <Download className="w-5 h-5" />
               </button>
             </div>
-          </div>
+            */}
 
-          {/* Métricas Rápidas */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div className="bg-blue-700 px-4 py-3 rounded-lg backdrop-blur-sm">
-              <p className="text-xs text-blue-100 uppercase tracking-wider">
-                Temperatura
-              </p>
-              <p className="text-2xl font-bold">
-                {latest
-                  ? formatTemperature(latest.temperature_celsius)
-                  : "--°C"}
-              </p>
-            </div>
-            <div className="bg-blue-700 px-4 py-3 rounded-lg backdrop-blur-sm">
-              <p className="text-xs text-blue-100 uppercase tracking-wider">
-                Umidade
-              </p>
-              <p className="text-2xl font-bold">
-                {latest ? formatHumidity(latest.humidity_percent) : "--%"}
-              </p>
-            </div>
+              <div className="bg-blue-700 px-4 py-3 rounded-lg backdrop-blur-sm">
+                <p className="text-xs text-blue-100 uppercase tracking-wider">
+                  Temperatura
+                </p>
+                <p className="text-2xl font-bold">
+                  {latest
+                    ? formatTemperature(latest.temperature_celsius)
+                    : "--°C"}
+                </p>
+              </div>
+              <div className="bg-blue-700 px-4 py-3 rounded-lg backdrop-blur-sm">
+                <p className="text-xs text-blue-100 uppercase tracking-wider">
+                  Umidade
+                </p>
+                <p className="text-2xl font-bold">
+                  {latest ? formatHumidity(latest.humidity_percent) : "--%"}
+                </p>
+              </div>
+              {/*
             <div className="bg-blue-700 px-4 py-3 rounded-lg backdrop-blur-sm">
               <p className="text-xs text-blue-100 uppercase tracking-wider">
                 RSSI
@@ -406,31 +399,48 @@ export default function MOTDashboard() {
                 {latest ? formatSNR(latest.snr) : "-- dB"}
               </p>
             </div>
+            */}
+            </div>
           </div>
 
           {/* Abas de Navegação */}
-          <div className="flex gap-2 border-t border-blue-500 pt-4 flex-wrap">
-            {MENU_ITEMS.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`px-6 py-2 rounded-lg font-semibold transition ${
-                  activeTab === item.id
-                    ? "bg-white text-blue-600"
-                    : "bg-blue-700 text-white hover:bg-blue-600"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          <div className="flex justify-between items-center flex-wrap border-t border-blue-500">
+            <div className="flex gap-2 pt-4">
+              {MENU_ITEMS.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`px-6 py-2 rounded-t-lg font-semibold transition ${
+                    activeTab === item.id
+                      ? "bg-white text-blue-600"
+                      : "bg-blue-500 text-white hover:bg-blue-400"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
 
-          {/* Status */}
-          {lastUpdate && (
-            <p className="text-xs text-blue-100 mt-4">
-              Última atualização: {formatTime(lastUpdate)}
-            </p>
-          )}
+            {/* Status */}
+            <div className="flex items-center justify-end gap-4">
+              {lastUpdate && (
+                <p className="text-xs text-blue-100">
+                  Última atualização: {formatTime(lastUpdate)}
+                </p>
+              )}
+
+              <button
+                onClick={loadAllData}
+                disabled={isRefreshing}
+                className="bg-blue-700 hover:bg-blue-600 p-2 rounded-lg transition disabled:opacity-50"
+                title="Atualizar dados"
+              >
+                <RefreshCw
+                  className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -449,10 +459,10 @@ export default function MOTDashboard() {
                 ABA 1: DADOS DO SENSOR
                =========================== */}
             {activeTab === "sensor" && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn mb-4">
                 {/* Card Estatísticas */}
-                <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition dark:bg-slate-800">
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+                <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition ">
+                  <h2 className="text-xl font-bold text-gray-80 mb-6 flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-blue-600" />
                     Estatísticas (24h)
                   </h2>
@@ -503,26 +513,12 @@ export default function MOTDashboard() {
                           : "--%"}
                       </p>
                     </div>
-
-                    {/* Médias */}
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 p-4 rounded-lg col-span-2">
-                      <p className="text-xs text-purple-600 dark:text-purple-300 uppercase font-semibold tracking-wider">
-                        Média Temp / Umidade
-                      </p>
-                      <p className="text-xl font-bold text-purple-800 dark:text-purple-100 mt-1">
-                        {statistics?.temperature?.avg
-                          ? `${formatTemperature(
-                              statistics.temperature.avg,
-                            )} / ${formatHumidity(statistics.humidity.avg)}`
-                          : "--°C / --%"}
-                      </p>
-                    </div>
                   </div>
                 </div>
 
                 {/* Card Gráficos */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition dark:bg-slate-800">
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+                  <h2 className="text-xl font-bold text-gray-800 mb-6">
                     Histórico (Últimas 24h)
                   </h2>
 
@@ -562,8 +558,49 @@ export default function MOTDashboard() {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
+                {/* LEITURAS RECENTES */}
+                <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-3 card-hover animate-slideInUp">
+                  <h2 className="text-xl font-bold text-gray-800 mb-6">
+                    Leituras Recentes
+                  </h2>
 
-                {/* Card Leituras Recentes */}
+                  <div className="space-y-3">
+                    {readings.slice(0, 10).map((r, i) => (
+                      <div
+                        key={i}
+                        className="p-4 border-b border-gray-100 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                      >
+                        <div className="flex justify-between items-center space-x-4">
+                          <span className="text-gray-500 text-sm">
+                            {formatDate(r.received_at)}
+                          </span>
+                          <span className="text-gray-500 text-sm">
+                            {formatTime(r.received_at)}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between items-center space-x-4">
+                          <span className="text-blue-600 font-bold flex items-center">
+                            <Thermometer className="w-4 h-4 mr-1" />
+                            {formatTemperature(r.temperature)}
+                          </span>
+                          <span className="text-green-600 font-bold flex items-center">
+                            <Droplets className="w-4 h-4 mr-1" />
+                            {formatHumidity(r.humidity)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {readings.length === 0 && (
+                    <p className="text-center text-gray-500 py-4">
+                      Nenhuma leitura disponível
+                    </p>
+                  )}
+                </div>
+
+                {/* Card Leituras Recentes 
                 <div className="lg:col-span-3 bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition dark:bg-slate-800">
                   <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-bold text-gray-800 dark:text-white">
@@ -636,6 +673,7 @@ export default function MOTDashboard() {
                     </div>
                   )}
                 </div>
+                */}
               </div>
             )}
 
@@ -648,8 +686,8 @@ export default function MOTDashboard() {
                 <SignalQualityCard quality={quality} statistics={statistics} />
 
                 {/* Card Gráficos RSSI */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition dark:bg-slate-800">
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+                  <h2 className="text-xl font-bold text-black-800 mb-6">
                     Histórico RSSI e SNR
                   </h2>
 
@@ -737,7 +775,7 @@ export default function MOTDashboard() {
       <footer className="bg-gray-800 dark:bg-slate-900 text-gray-300 text-center py-6 mt-12">
         <p className="text-sm">
           MoT Dashboard • Monitoramento LoRaWAN • Última atualização:{" "}
-          {lastUpdate ? formatTime(lastUpdate) : "--:--:--"}
+          {lastUpdate ? formatTime(lastUpdate) : "--:--"}
         </p>
         <p className="text-xs text-gray-500 mt-2">
           © 2025 Metodologia TpM - Unicamp • Dispositivo: {DEVICE_ID}
