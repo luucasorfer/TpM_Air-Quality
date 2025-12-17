@@ -228,7 +228,7 @@ export function SignalQualityCard({ quality, statistics }) {
             Variação
           </p>
           <p className="text-2xl font-bold text-purple-800 mt-2">
-            {rssiVariation} dBm
+            {rssiVariation} dB
           </p>
         </div>
 
