@@ -49,6 +49,12 @@ import {
   CHART_PERIODS,
   MENU_ITEMS,
 } from "../utils/constants";
+import {
+  fetchLatest as fetchLatestAPI,
+  fetchReadings as fetchReadingsAPI,
+  fetchStatistics as fetchStatisticsAPI,
+  fetchQuality as fetchQualityAPI,
+} from "../utils/api";
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 const DEVICE_ID = API_CONFIG.DEVICE_ID;
@@ -84,23 +90,14 @@ export default function MOTDashboard() {
    */
   const fetchLatest = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/sensor/latest?device_id=${DEVICE_ID}`,
-        { signal: AbortSignal.timeout(API_CONFIG.TIMEOUT) },
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      console.log("📡 Buscando última leitura...");
+      const data = await fetchLatestAPI(DEVICE_ID);
+      console.log("✅ Última leitura recebida:", data);
       setLatest(data);
       return data;
     } catch (err) {
-      console.error("Erro ao buscar última leitura:", err);
-      if (err.name !== "AbortError") {
-        setError("Erro ao buscar última leitura");
-      }
+      console.error("❌ Erro ao buscar última leitura:", err);
+      setError(err.message);
       return null;
     }
   }, []);
@@ -110,35 +107,42 @@ export default function MOTDashboard() {
    */
   const fetchReadings = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/sensor/readings?device_id=${DEVICE_ID}&limit=100`,
-        { signal: AbortSignal.timeout(API_CONFIG.TIMEOUT) },
-      );
+      console.log("📡 Buscando leituras...");
+      const result = await fetchReadingsAPI(DEVICE_ID, 100);
+      console.log("✅ Leituras recebidas:", result);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // Verificar estrutura dos dados
+      const dataArray = result.data || result.readings || [];
+
+      if (!Array.isArray(dataArray)) {
+        console.error("❌ Formato de dados inválido:", result);
+        throw new Error("Formato de dados inválido");
       }
 
-      const data = await response.json();
-
-      // Formatar dados para gráficos
-      const formattedData = data.data.map((reading) => ({
+      // Formatar dados para gráficos e tabela
+      const formattedData = dataArray.map((reading) => ({
+        // Para gráficos
         timestamp: formatTime(reading.received_at),
         temperature: reading.temperature_celsius,
         humidity: reading.humidity_percent,
         rssi: reading.rssi,
         snr: reading.snr,
+
+        // Para tabela e detalhes
         received_at: reading.received_at,
         raw: reading,
       }));
 
-      setReadings(formattedData.reverse());
-      return formattedData;
+      // Reverter para mostrar mais recentes primeiro
+      const sortedData = formattedData;
+
+      console.log(`✅ ${sortedData.length} leituras formatadas`);
+      setReadings(sortedData);
+
+      return sortedData;
     } catch (err) {
-      console.error("Erro ao buscar leituras:", err);
-      if (err.name !== "AbortError") {
-        setError("Erro ao buscar histórico de leituras");
-      }
+      console.error("❌ Erro ao buscar leituras:", err);
+      setError(err.message);
       return [];
     }
   }, []);
@@ -148,25 +152,17 @@ export default function MOTDashboard() {
    */
   const fetchStatistics = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/sensor/statistics?device_id=${DEVICE_ID}&period=${
-          preferences.chartPeriod || "24h"
-        }`,
-        { signal: AbortSignal.timeout(API_CONFIG.TIMEOUT) },
+      console.log("📡 Buscando estatísticas...");
+      const data = await fetchStatisticsAPI(
+        DEVICE_ID,
+        preferences.chartPeriod || "24h",
       );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      console.log("✅ Estatísticas recebidas:", data);
       setStatistics(data);
       return data;
     } catch (err) {
-      console.error("Erro ao buscar estatísticas:", err);
-      if (err.name !== "AbortError") {
-        setError("Erro ao buscar estatísticas");
-      }
+      console.error("❌ Erro ao buscar estatísticas:", err);
+      setError(err.message);
       return null;
     }
   }, [preferences.chartPeriod]);
@@ -176,23 +172,14 @@ export default function MOTDashboard() {
    */
   const fetchQuality = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/sensor/quality?device_id=${DEVICE_ID}&limit=100`,
-        { signal: AbortSignal.timeout(API_CONFIG.TIMEOUT) },
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      console.log("📡 Buscando qualidade...");
+      const data = await fetchQualityAPI(DEVICE_ID, 100);
+      console.log("✅ Qualidade recebida:", data);
       setQuality(data);
       return data;
     } catch (err) {
-      console.error("Erro ao buscar qualidade:", err);
-      if (err.name !== "AbortError") {
-        setError("Erro ao buscar qualidade do sinal");
-      }
+      console.error("❌ Erro ao buscar qualidade:", err);
+      setError(err.message);
       return null;
     }
   }, []);
@@ -201,24 +188,35 @@ export default function MOTDashboard() {
    * Carregar todos os dados
    */
   const loadAllData = useCallback(async () => {
+    console.log("🔄 Iniciando carregamento de dados...");
     setIsRefreshing(true);
     setError(null);
 
     try {
-      await Promise.all([
-        fetchLatest(),
-        fetchReadings(),
-        fetchStatistics(),
-        fetchQuality(),
-      ]);
+      // Aguardar todas as requisições em paralelo
+      const [latestData, readingsData, statsData, qualityData] =
+        await Promise.all([
+          fetchLatest(),
+          fetchReadings(),
+          fetchStatistics(),
+          fetchQuality(),
+        ]);
+
+      console.log("✅ Todos os dados carregados:", {
+        latest: !!latestData,
+        readings: readingsData?.length || 0,
+        statistics: !!statsData,
+        quality: !!qualityData,
+      });
 
       setLastUpdate(new Date());
       setLoading(false);
     } catch (err) {
-      console.error("Erro ao carregar dados:", err);
+      console.error("❌ Erro crítico ao carregar dados:", err);
       setError("Erro ao carregar dados do servidor");
     } finally {
       setIsRefreshing(false);
+      console.log("✅ Carregamento finalizado");
     }
   }, [fetchLatest, fetchReadings, fetchStatistics, fetchQuality]);
 
@@ -227,16 +225,29 @@ export default function MOTDashboard() {
   // ===========================
 
   useEffect(() => {
+    console.log("🚀 Componente montado, carregando dados iniciais...");
     loadAllData();
+  }, []); // Apenas na montagem
 
-    // Atualizar baseado no intervalo de preferência
-    const interval = setInterval(
-      loadAllData,
-      preferences.autoRefresh ? preferences.refreshInterval : Infinity,
-    );
+  // ✅ CORREÇÃO 6: Efeito de auto-refresh separado
+  useEffect(() => {
+    if (!preferences.autoRefresh) {
+      console.log("⏸️ Auto-refresh desabilitado");
+      return;
+    }
 
-    return () => clearInterval(interval);
-  }, [loadAllData, preferences.autoRefresh, preferences.refreshInterval]);
+    console.log(`⏰ Auto-refresh ativado: ${preferences.refreshInterval}ms`);
+
+    const interval = setInterval(() => {
+      console.log("🔄 Auto-refresh executando...");
+      loadAllData();
+    }, preferences.refreshInterval);
+
+    return () => {
+      console.log("🛑 Auto-refresh cancelado");
+      clearInterval(interval);
+    };
+  }, [preferences.autoRefresh, preferences.refreshInterval, loadAllData]);
 
   // ===========================
   // HELPER FUNCTIONS
